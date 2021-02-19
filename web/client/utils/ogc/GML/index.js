@@ -25,7 +25,7 @@ const pointElement = (coordinates, srsName, version) => {
     return gmlPoint;
 };
 
-const polygonElement = (coordinates, srsName, version) => {
+const polygonElement = (coordinates, srsName, version, polygonType = 'Polygon') => {
     const gml2 = isGML2(version);
     let gmlPolygon = '<gml:Polygon';
     gmlPolygon += srsName ? ' srsName="' + srsName + '">' : '>';
@@ -36,20 +36,39 @@ const polygonElement = (coordinates, srsName, version) => {
     // ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
     const normalizedCoords = coordinates.length && isArray(coordinates[0]) && coordinates[0].length && isArray(coordinates[0][0]) ? coordinates : [coordinates];
+    const hasHoles = (coordinates.length > 1 && polygonType === 'Polygon') ? true : false;
     normalizedCoords.forEach((element, index) => {
         let coords = closePolygon(element).map((coordinate) => {
             return coordinate[0] + (gml2 ? "," : " ") + coordinate[1];
         });
+
         const exterior = (gml2 ? "outerBoundaryIs" : "exterior");
-        const interior = (gml2 ? "innerBoundaryIs" : "exterior");
+        const interior = (gml2 ? "innerBoundaryIs" : "interior");
+        let polygonPosition = index < 1 ? exterior : interior;
+        if (!hasHoles) {polygonPosition = exterior;}
+
         gmlPolygon +=
-            (index < 1 ? '<gml:' + exterior + '>' : '<gml:' + interior + '>') +
+            '<gml:' + polygonPosition + '>' +
+                '<gml:LinearRing>' +
+                (gml2 ? '<gml:coordinates>' : '<gml:posList>') +
+                        coords.join(" ") +
+                (gml2 ? '</gml:coordinates>' : '</gml:posList>') +
+                '</gml:LinearRing>' +
+            '</gml:' + polygonPosition + '>';
+
+
+        /*
+        gmlPolygon +=
+            ((index < 1) ? '<gml:' + exterior + '>' : '<gml:' + interior  + '>') +
                     '<gml:LinearRing>' +
                     (gml2 ? '<gml:coordinates>' : '<gml:posList>') +
                             coords.join(" ") +
                     (gml2 ? '</gml:coordinates>' : '</gml:posList>') +
                     '</gml:LinearRing>' +
-            (index < 1 ? '</gml:' + exterior + '>' : '</gml:' + interior + '>');
+            ((index < 1) ? '</gml:' + exterior + '>' : '</gml:' +  interior  + '>');
+        */
+
+
     });
 
     gmlPolygon += '</gml:Polygon>';
@@ -132,7 +151,7 @@ const processOGCGeometry = (version, geometry) => {
         break;
     case "Polygon":
         ogc += polygonElement(geometry.coordinates,
-            srsName, version);
+            srsName, version, geometry.type);
         break;
     case "MultiPolygon":
         const multyPolygonTagName = version === "3.2" ? "MultiSurface" : "MultiPolygon";
@@ -147,7 +166,7 @@ const processOGCGeometry = (version, geometry) => {
             let polygon = element;
             if (polygon) {
                 ogc += "<gml:" + polygonMemberTagName + ">";
-                ogc += polygonElement(polygon, srsName, version);
+                ogc += polygonElement(polygon, srsName, version, geometry.type);
                 ogc += "</gml:" + polygonMemberTagName + ">";
             }
         });
