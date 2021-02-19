@@ -44,8 +44,7 @@ const polygonElement = (coordinates, srsName, version, polygonType = 'Polygon') 
 
         const exterior = (gml2 ? "outerBoundaryIs" : "exterior");
         const interior = (gml2 ? "innerBoundaryIs" : "interior");
-        let polygonPosition = index < 1 ? exterior : interior;
-        if (!hasHoles) {polygonPosition = exterior;}
+        let polygonPosition = (index < 1 || !hasHoles) ? exterior : interior;
 
         gmlPolygon +=
             '<gml:' + polygonPosition + '>' +
