@@ -32,7 +32,7 @@ const polygonElement = (coordinates, srsName, version, polygonType = 'Polygon') 
 
     // ///////////////////////////////////////////////////////////////////////////////////////////////////////
     // Array of LinearRing coordinate array. The first element in the array represents the exterior ring.
-    // Any subsequent elements represent interior rings (or holes).
+    // Any subsequent elements represent interior rings (or holes), if polygonType is not a multiPolygon
     // ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
     const normalizedCoords = coordinates.length && isArray(coordinates[0]) && coordinates[0].length && isArray(coordinates[0][0]) ? coordinates : [coordinates];
@@ -55,19 +55,6 @@ const polygonElement = (coordinates, srsName, version, polygonType = 'Polygon') 
                 (gml2 ? '</gml:coordinates>' : '</gml:posList>') +
                 '</gml:LinearRing>' +
             '</gml:' + polygonPosition + '>';
-
-
-        /*
-        gmlPolygon +=
-            ((index < 1) ? '<gml:' + exterior + '>' : '<gml:' + interior  + '>') +
-                    '<gml:LinearRing>' +
-                    (gml2 ? '<gml:coordinates>' : '<gml:posList>') +
-                            coords.join(" ") +
-                    (gml2 ? '</gml:coordinates>' : '</gml:posList>') +
-                    '</gml:LinearRing>' +
-            ((index < 1) ? '</gml:' + exterior + '>' : '</gml:' +  interior  + '>');
-        */
-
 
     });
 
